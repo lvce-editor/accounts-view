@@ -13,6 +13,7 @@ await cp(join(distRoot, 'accounts-view.js'), join(staticRoot, 'accounts-view.js'
 await cp(join(distRoot, 'accounts-worker.js'), join(staticRoot, 'accounts-worker.js'))
 await cp(join(root, 'packages', 'accounts-view', 'index.html'), join(staticRoot, 'index.html'))
 await cp(join(root, 'packages', 'accounts-view', 'style.css'), join(staticRoot, 'style.css'))
+await cp(join(root, 'packages', 'accounts-view', 'favicon.svg'), join(staticRoot, 'favicon.svg'))
 const htmlPath = join(staticRoot, 'index.html')
 const html = await readFile(htmlPath, 'utf8')
 await writeFile(htmlPath, html.replaceAll('%%PATH_PREFIX%%', prefix))
