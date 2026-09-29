@@ -1,0 +1,6 @@
+{
+  "name": "@lvce-editor/accounts-worker",
+  "version": "0.0.0-dev",
+  "type": "module",
+  "main": "src/accountsWorker.ts"
+}
