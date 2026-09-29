@@ -2,6 +2,10 @@ import { expect, test } from '@playwright/test'
 
 test('lists mock accounts and signs out only the selected account', async ({ page }) => {
   await page.goto('/accounts-view/')
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/accounts-view/favicon.svg')
+  const faviconResponse = await page.request.get('/accounts-view/favicon.svg')
+  expect(faviconResponse.status()).toBe(200)
+
   const accounts = page.getByRole('list', { name: 'Connected accounts' })
   await expect(accounts.getByRole('listitem')).toHaveCount(2)
   await expect(accounts.getByText('Ava Chen')).toBeVisible()
