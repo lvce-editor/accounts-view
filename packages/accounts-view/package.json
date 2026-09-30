@@ -3,6 +3,6 @@
   "version": "0.0.0-dev",
   "type": "module",
   "scripts": {
-    "build": "node src/build.js"
+    "build": "node src/build.ts"
   }
 }
