@@ -59,9 +59,9 @@ const renderAccount = (account: Account): TreeNode => {
     {
       ariaLabel: `Sign out ${account.displayName}`,
       className: logoutClassName,
+      inputType: 'button',
       name: account.id,
       onClick: 'handleSignOut',
-      inputType: 'button',
     },
     [textNode('Sign out')],
   )
