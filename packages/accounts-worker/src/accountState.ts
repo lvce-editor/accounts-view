@@ -12,7 +12,7 @@ export type AccountAction =
 export type AccountResponse =
   { readonly type: 'accounts'; readonly accounts: readonly Account[] } | { readonly type: 'error'; readonly message: string }
 
-export const mockAccounts: readonly Account[] = [
+const mockAccounts: readonly Account[] = [
   {
     color: 'violet',
     displayName: 'Ava Chen',
