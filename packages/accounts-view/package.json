@@ -4,5 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "node src/build.ts"
+  },
+  "dependencies": {
+    "@lvce-editor/virtual-dom": "^11.22.0",
+    "@lvce-editor/virtual-dom-worker": "^11.22.0"
   }
 }

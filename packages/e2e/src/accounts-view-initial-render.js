@@ -1,0 +1,17 @@
+export const test = async ({ document, assert, waitFor }) => {
+  assert(document.querySelector('link[rel="icon"]').getAttribute('href') === '/accounts-view/favicon.svg', 'Favicon URL changed')
+  const favicon = await fetch('/accounts-view/favicon.svg')
+  assert(favicon.status === 200, 'Favicon must load')
+  const accounts = () => document.querySelector('ul[aria-label="Connected accounts"]')
+  assert(accounts().children.length === 2, 'Expected two initial accounts')
+  assert(accounts().textContent.includes('Ava Chen'), 'Ava missing')
+  assert(accounts().textContent.includes('Sam Rivera'), 'Sam missing')
+  assert(accounts().querySelector('.avatar').getAttribute('aria-hidden') === 'true', 'Decorative avatar must be hidden from accessibility tree')
+  const signOut = document.querySelector('button[aria-label="Sign out Ava Chen"]')
+  assert(signOut.type === 'button', 'Sign out must not submit a form')
+  signOut.click()
+  await waitFor(() => accounts().children.length === 1, 'Sign out did not remove one account')
+  assert(!accounts().textContent.includes('Ava Chen'), 'Ava was not removed')
+  assert(accounts().textContent.includes('Sam Rivera'), 'Sam was incorrectly removed')
+  assert(document.querySelector('#status').textContent === '1 account connected', 'Incorrect singular count')
+}

@@ -4,9 +4,11 @@ import { createServer } from 'node:http'
 import { extname, isAbsolute, join, normalize, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const root = join(fileURLToPath(new URL('../../../.tmp/static/', import.meta.url)))
-const projectRoot = join(fileURLToPath(new URL('../../../', import.meta.url)))
+const root = join(fileURLToPath(new URL('../../.tmp/static/', import.meta.url)))
+const projectRoot = join(fileURLToPath(new URL('../../', import.meta.url)))
+const testMode = Boolean(process.send)
 const development = process.argv.includes('--dev')
+const TEST_EXTENSION = /\.(html|js)$/
 const ACCOUNTS_VIEW_PREFIX = /^\/accounts-view\/?/
 const contentTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -17,6 +19,32 @@ const contentTypes = {
 
 const server = createServer(async (request, response) => {
   const pathname = new URL(request.url || '/', 'http://localhost').pathname
+  if (testMode && pathname.startsWith('/tests/')) {
+    const name = pathname.slice('/tests/'.length)
+    const tests = ['accounts-view-initial-render', 'accounts-view-add-account', 'accounts-view-empty-state']
+    const testName = name.replace(TEST_EXTENSION, '')
+    if (!tests.includes(testName)) {
+      response.writeHead(404).end()
+      return
+    }
+    if (name.endsWith('.html')) {
+      const query = testName === 'accounts-view-empty-state' ? '?empty=1' : ''
+      response.writeHead(200, { 'content-type': contentTypes['.html'] })
+      response.end(`<!doctype html><iframe src="/accounts-view/${query}" style="width:100%;height:800px"></iframe>
+        <script type="module" src="/test-harness.js" data-test="${testName}"></script>`)
+    } else if (name.endsWith('.js')) {
+      response.writeHead(200, { 'content-type': contentTypes['.js'] })
+      response.end(await readFile(new URL(`./src/${name}`, import.meta.url)))
+    } else {
+      response.writeHead(404).end()
+    }
+    return
+  }
+  if (testMode && pathname === '/test-harness.js') {
+    response.writeHead(200, { 'content-type': contentTypes['.js'] })
+    response.end(await readFile(new URL('./test-harness.js', import.meta.url)))
+    return
+  }
   const relativePath = pathname.replace(ACCOUNTS_VIEW_PREFIX, '') || 'index.html'
   if (development) {
     const developmentPaths = {
@@ -72,8 +100,9 @@ server.on('error', (error) => {
   process.exitCode = 1
 })
 
-server.listen(4173, '127.0.0.1', () => {
-  console.log(`Accounts view is available at http://127.0.0.1:4173/accounts-view/${development ? ' (development)' : ''}`)
+server.listen(Number(process.env.PORT || 4173), '127.0.0.1', () => {
+  process.send?.('ready')
+  console.log(`Accounts view is available at http://127.0.0.1:${server.address().port}/accounts-view/${development ? ' (development)' : ''}`)
 })
 
 const close = () => server.close()
