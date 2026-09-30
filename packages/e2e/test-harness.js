@@ -19,7 +19,7 @@ const waitFor = async (predicate, message) => {
 
 try {
   await waitFor(() => frame.contentDocument?.querySelector('#account-list'), 'Account list did not render')
-  const { test } = await import(`/tests/${testName}.js`)
+  const { test } = await import(`./${testName}.js`)
   await test({ document: frame.contentDocument, assert, waitFor })
   overlay.dataset.state = 'pass'
   overlay.textContent = `${testName}: passed`
