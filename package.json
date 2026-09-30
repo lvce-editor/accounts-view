@@ -9,6 +9,7 @@
   "scripts": {
     "build": "npm run build --workspace=packages/accounts-view",
     "build:static": "node packages/build/src/build-static.ts",
+    "build:release": "node packages/build/src/build-release.ts",
     "e2e": "npm run build:static && npm run e2e --workspace=e2e",
     "lint": "eslint . && prettier --check .",
     "test": "npm test --workspaces --if-present",
