@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["packages/build/src/**/*.ts"],
+      "project": ["*.js", "packages/build/src/**/*.ts"]
+    },
+    "packages/accounts-view": {
+      "entry": ["src/main.ts", "src/build.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/accounts-worker": {
+      "entry": ["src/accountsWorker.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "packages/e2e": {
+      "entry": ["src/**/*.js"],
+      "project": ["src/**/*.js"]
+    }
+  }
+}
