@@ -44,7 +44,7 @@ process.once('SIGTERM', () => {
 try {
   await Promise.all(contexts.map((buildContext) => buildContext.rebuild()))
   await Promise.all(contexts.map((buildContext) => buildContext.watch()))
-  server = spawn(process.execPath, [join(root, 'packages', 'e2e', 'src', 'server.js'), '--dev'], {
+  server = spawn(process.execPath, [join(root, 'packages', 'e2e', 'static-server.js'), '--dev'], {
     cwd: root,
     stdio: 'inherit',
   })
