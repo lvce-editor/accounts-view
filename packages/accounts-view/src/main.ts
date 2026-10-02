@@ -11,7 +11,7 @@ if (!accountContent || !status || !loginButton || !providerSelect) {
   throw new Error('Account view markup is incomplete')
 }
 
-const workerUrl = new URL('/accounts-view/accounts-worker.js', location.origin)
+const workerUrl = new URL('accounts-worker.js', import.meta.url)
 workerUrl.search = location.search
 const worker = new Worker(workerUrl, { type: 'module' })
 

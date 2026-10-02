@@ -26,4 +26,8 @@ for (const file of packageJson.files as string[]) {
   await cp(join(staticRoot, file), join(distRoot, file))
 }
 
+const indexPath = join(distRoot, 'index.html')
+const indexHtml = await readFile(indexPath, 'utf8')
+await writeFile(indexPath, indexHtml.replaceAll('/accounts-view/', './'))
+
 await cp(join(root, 'README.md'), join(distRoot, 'README.md'))
