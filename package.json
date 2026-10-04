@@ -14,7 +14,7 @@
     "e2e": "npm run e2e --workspace=packages/e2e",
     "lint": "eslint . && prettier --check . && knip --no-config-hints",
     "test": "npm test --workspaces --if-present",
-    "type-check": "tsc -b",
+    "type-check": "tsc --build",
     "build:watch": "node packages/build/src/build.ts --watch"
   },
   "devDependencies": {
