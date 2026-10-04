@@ -4,9 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "e2e": "test-with-playwright"
+    "e2e": "playwright test"
   },
   "devDependencies": {
-    "@lvce-editor/test-with-playwright": "22.39.2"
+    "@playwright/test": "^1.61.1",
+    "@lvce-editor/rpc": "^6.21.1",
+    "@lvce-editor/virtual-dom": "^11.22.0",
+    "esbuild": "^0.25.0"
   }
 }

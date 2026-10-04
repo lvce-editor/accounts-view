@@ -1,0 +1,9 @@
+{
+  "name": "@lvce-editor/accounts-view-worker-server",
+  "version": "0.0.0-dev",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@lvce-editor/server": "0.119.16"
+  }
+}

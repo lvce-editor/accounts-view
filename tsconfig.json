@@ -6,10 +6,10 @@
       "path": "./packages/accounts-view"
     },
     {
-      "path": "./packages/accounts-worker"
+      "path": "./packages/build"
     },
     {
-      "path": "./packages/build"
+      "path": "./packages/e2e"
     }
   ]
 }
