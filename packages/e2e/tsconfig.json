@@ -15,5 +15,5 @@
     "noImplicitAny": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "playwright.config.ts"]
+  "include": ["src", "Fixture.ts", "Server.ts"]
 }

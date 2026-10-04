@@ -53,8 +53,9 @@ const eventsRpc: Rpc = await PlainMessagePortRpc.create({
 })
 await workerRpc.invokeAndTransfer('Accounts.handleMessagePort', directChannel.port2)
 await workerRpc.invoke('Accounts.create', 1)
-const accounts = new URL(location.href).searchParams.has('populated')
-  ? [{ color: 'blue', displayName: 'Test User', email: 'test@example.com', id: 'test', provider: 'GitHub' }]
-  : []
+const accounts =
+  new URL(location.href).searchParams.has('populated') || location.pathname.endsWith('/accounts-view-initial-render.html')
+    ? [{ color: 'blue', displayName: 'Test User', email: 'test@example.com', id: 'test', provider: 'GitHub' }]
+    : []
 await workerRpc.invoke('Accounts.loadContent', 1, accounts)
 await render()
