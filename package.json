@@ -14,7 +14,7 @@
     "e2e": "npm run build:static && npm run e2e --workspace=e2e",
     "lint": "eslint . && prettier --check . && knip --no-config-hints",
     "test": "npm test --workspaces --if-present",
-    "type-check": "tsc --build && tsc --build packages/accounts-worker/tsconfig.json && tsc --build packages/build/tsconfig.json"
+    "type-check": "tsc --build"
   },
   "devDependencies": {
     "@lvce-editor/eslint-config": "^18.14.2",

@@ -1,25 +1,15 @@
 {
-  "compilerOptions": {
-    "assumeChangesOnlyAffectDirectDependencies": true,
-    "target": "esnext",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "lib": ["esnext", "dom"],
-    "types": ["node"],
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedSideEffectImports": true,
-    "noEmit": true,
-    "skipLibCheck": false,
-    "exactOptionalPropertyTypes": true,
-    "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "isolatedModules": true,
-    "composite": true,
-    "allowImportingTsExtensions": true,
-    "ignoreDeprecations": "6.0"
-  },
-  "include": ["packages/accounts-view/src/**/*.ts", "packages/accounts-worker/src/accountState.ts"],
-  "exclude": ["node_modules", ".tmp"]
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "./packages/accounts-view"
+    },
+    {
+      "path": "./packages/accounts-worker"
+    },
+    {
+      "path": "./packages/build"
+    }
+  ]
 }
