@@ -14,8 +14,8 @@
       "project": ["src/**/*.ts", "test/*.ts"]
     },
     "packages/e2e": {
-      "entry": ["playwright.config.ts", "src/*.ts"],
-      "project": ["**/*.ts"]
+      "entry": ["e2e.config.js", "Server.ts", "Fixture.ts", "src/*.js"],
+      "project": ["e2e.config.js", "Server.ts", "Fixture.ts", "src/*.js"]
     },
     "packages/server": {
       "entry": ["src/server.js"],
