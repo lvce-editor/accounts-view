@@ -9,9 +9,6 @@ export interface Account {
 export type AccountAction =
   { readonly type: 'get-accounts' } | { readonly type: 'login'; readonly provider: string } | { readonly type: 'logout'; readonly accountId: string }
 
-export type AccountResponse =
-  { readonly type: 'accounts'; readonly accounts: readonly Account[] } | { readonly type: 'error'; readonly message: string }
-
 const mockAccounts: readonly Account[] = [
   {
     color: 'violet',

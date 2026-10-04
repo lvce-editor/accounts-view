@@ -10,6 +10,7 @@ await Promise.all([
   build({
     bundle: true,
     entryPoints: [join(root, 'packages', 'accounts-view', 'src', 'main.ts')],
+    external: ['electron', 'node:*'],
     format: 'esm',
     outfile: join(output, 'accounts-view.js'),
     platform: 'browser',
@@ -17,6 +18,7 @@ await Promise.all([
   build({
     bundle: true,
     entryPoints: [join(root, 'packages', 'accounts-worker', 'src', 'accountsWorker.ts')],
+    external: ['electron', 'node:*'],
     format: 'iife',
     outfile: join(output, 'accounts-worker.js'),
     platform: 'browser',

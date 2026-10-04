@@ -5,7 +5,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "lib": ["esnext", "webworker"],
-    "types": [],
+    "types": ["node"],
     "strict": true,
     "noImplicitAny": true,
     "noUncheckedSideEffectImports": true,
@@ -20,5 +20,5 @@
     "allowImportingTsExtensions": true,
     "ignoreDeprecations": "6.0"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }
