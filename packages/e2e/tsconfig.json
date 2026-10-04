@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "noEmit": true,
+    "composite": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"],
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src", "playwright.config.ts"]
+}

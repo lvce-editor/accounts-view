@@ -1,13 +1,14 @@
 # Accounts View
 
-An LVCE Editor account-view prototype. It demonstrates a worker-backed account list with mock sign-in and sign-out actions; it does not connect to an identity provider or store credentials.
+Accounts view worker for LVCE Editor. One package, `packages/accounts-view`, owns account state, commands, event listeners, and virtual DOM rendering. Its entry point is `src/accountsWorkerMain.ts`; TypeScript modules follow the `src/parts/Name/Name.ts` layout used by explorer-view and about-view.
 
-## Development
+The host connects using `WebWorkerRpcClient` / `WebWorkerRpcParent` and the `Accounts.*` commands. Create a view with `Accounts.create(uid)`, supply account data with `Accounts.loadContent(uid, accounts)`, then use `Accounts.diff2` and `Accounts.render2`. `Accounts.handleMessagePort` connects a renderer process for direct DOM events and queued render transactions. `Accounts.dispose` removes the view state.
 
-- `npm ci` installs the workspace dependencies.
-- `npm run dev` builds and watches the view and worker, then serves the demo at <http://127.0.0.1:4173/accounts-view/>. Press Ctrl+C to stop.
-- `npm run build` builds the accounts worker.
-- `npm run build:static` exports the demo to `.tmp/static`.
-- `npm run e2e` runs the mock account scenarios in Chromium.
+Account actions still use in-memory demo data. Adding an account does not authenticate with a provider; signing out removes a demo account. New views start empty. Real provider authentication and editor navigation are separate integration work.
 
-The GitHub Pages demo is published from the `main` branch. Sign-in and sign-out only change in-memory mock state.
+- `npm ci` installs workspace dependencies.
+- `npm run build` bundles the worker and creates the npm package in `.tmp/dist`.
+- `npm run dev` watches the worker and starts the standard LVCE development server.
+- `npm run build:static` exports the standard LVCE host and worker for GitHub Pages.
+- `npm test` tests view state, lifecycle, and rendering.
+- `npm run e2e` tests the bundled worker in Chromium using RPC and the shared virtual DOM renderer. Browser fixtures belong to the tests, not the published worker package.
