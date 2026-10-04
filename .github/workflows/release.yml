@@ -6,6 +6,7 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 permissions:
+  id-token: write
   contents: write
 
 jobs:
@@ -17,6 +18,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           draft: true
+          prerelease: true
 
   build-release:
     needs: create-release
@@ -32,7 +34,14 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
+      - uses: actions/cache@v6
+        id: npm-cache
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-${{ runner.arch }}-cacheNodeModules-${{ hashFiles('**/package.json', 'package-lock.json', '.nvmrc', '.github/workflows/*.yml') }}
+      - name: npm ci
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
       - run: npm run build
       - run: npm run build:static
       - run: npm test
@@ -47,8 +56,14 @@ jobs:
         working-directory: ./.tmp/dist
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-release:
+    needs: build-release
+    runs-on: ubuntu-24.04
+    steps:
       - name: Publish GitHub release
-        if: matrix.os == 'ubuntu-24.04'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release edit "${{ github.ref_name }}" --draft=false
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --prerelease=false
