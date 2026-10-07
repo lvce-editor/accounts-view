@@ -4,7 +4,7 @@ export const test = async ({ document, assert, waitFor }) => {
   assert(add.textContent === 'Add Another Account', 'Missing additional login action')
   add.click()
   await waitFor(() => accounts().children.length === 1, 'Login did not add exactly one account')
-  add.click()
+  document.querySelector('button[name="add-account"]').click()
   await waitFor(() => accounts().children.length === 2, 'Repeated login did not add exactly one account')
   assert(document.querySelectorAll('button[disabled]').length === 1, 'Expected exactly one active account')
   document.querySelector('button[name="use-account:account-1"]').click()
