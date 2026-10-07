@@ -11,7 +11,9 @@ export const test = async ({ Command, expect, Locator }) => {
   }
 
   await openAccounts()
+  await expect(accounts).toHaveCSS('flex-grow', '1')
   await Command.execute('Main.closeActiveEditor')
   await expect(accounts).toHaveCount(0)
   await openAccounts()
+  await expect(accounts).toHaveCSS('flex-grow', '1')
 }
