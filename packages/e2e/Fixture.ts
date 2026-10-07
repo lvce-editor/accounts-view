@@ -6,7 +6,23 @@ const renderer = createRenderer()
 const root = document.createElement('div')
 document.body.append(root)
 const pending = new Map<number, readonly (readonly unknown[])[]>()
-const state = { nextTransaction: 0 }
+interface Account {
+  readonly active: boolean
+  readonly color: string
+  readonly displayName: string
+  readonly email: string
+  readonly id: string
+  readonly provider: string
+}
+
+const state: { accounts: readonly Account[]; nextAccount: number; nextTransaction: number } = {
+  accounts:
+    new URL(location.href).searchParams.has('populated') || location.pathname.endsWith('/accounts-view-initial-render.html')
+      ? [{ active: true, color: 'blue', displayName: 'Test User', email: 'test@example.com', id: 'test', provider: 'LVCE Editor' }]
+      : [],
+  nextAccount: 0,
+  nextTransaction: 0,
+}
 
 const eventMap = {
   handleChange: (event: Readonly<Event>): void => {
@@ -37,7 +53,41 @@ const render = async (): Promise<void> => {
 const channel = new MessageChannel()
 await ModuleWorkerWithMessagePortRpcParent.create({ commandMap: {}, port: channel.port2, url: '/accountsWorkerMain.js' })
 const workerRpc: Rpc = await PlainMessagePortRpc.create({
-  commandMap: { 'Viewlet.requestRender': render },
+  commandMap: {
+    'Layout.getAccounts': () => {
+      const { accounts } = state
+      return accounts
+    },
+    'Layout.removeAccount': (id: string): void => {
+      const { accounts } = state
+      const removed = accounts.find((account) => account.id === id)
+      state.accounts = accounts.filter((account) => account.id !== id)
+      const { accounts: remaining } = state
+      if (removed?.active && remaining.length > 0) {
+        state.accounts = remaining.map((account, index) => ({ ...account, active: index === 0 }))
+      }
+    },
+    'Layout.signIn': (): void => {
+      const { accounts } = state
+      const id = `account-${++state.nextAccount}`
+      state.accounts = [
+        ...accounts.map((account) => ({ ...account, active: false })),
+        {
+          active: true,
+          color: 'blue',
+          displayName: id,
+          email: `${id}@example.com`,
+          id,
+          provider: 'LVCE Editor',
+        },
+      ]
+    },
+    'Layout.useAccount': (id: string): void => {
+      const { accounts } = state
+      state.accounts = accounts.map((account) => ({ ...account, active: account.id === id }))
+    },
+    'Viewlet.requestRender': render,
+  },
   messagePort: channel.port1,
 })
 const directChannel = new MessageChannel()
@@ -53,9 +103,5 @@ const eventsRpc: Rpc = await PlainMessagePortRpc.create({
 })
 await workerRpc.invokeAndTransfer('Accounts.handleMessagePort', directChannel.port2)
 await workerRpc.invoke('Accounts.create', 1)
-const accounts =
-  new URL(location.href).searchParams.has('populated') || location.pathname.endsWith('/accounts-view-initial-render.html')
-    ? [{ color: 'blue', displayName: 'Test User', email: 'test@example.com', id: 'test', provider: 'GitHub' }]
-    : []
-await workerRpc.invoke('Accounts.loadContent', 1, accounts)
+await workerRpc.invoke('Accounts.loadContent', 1)
 await render()

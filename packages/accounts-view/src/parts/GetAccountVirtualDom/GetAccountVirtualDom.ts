@@ -2,7 +2,7 @@ import { mergeClassNames, text, VirtualDomElements, type VirtualDomNode } from '
 import type { Account } from '../Account/Account.ts'
 import * as DomEventListenerFunctions from '../DomEventListenerFunctions/DomEventListenerFunctions.ts'
 
-const accountCard: VirtualDomNode = { childCount: 4, className: 'AccountCard', type: VirtualDomElements.Li }
+const accountCard: VirtualDomNode = { childCount: 5, className: 'AccountCard', type: VirtualDomElements.Li }
 
 const accountDetails: VirtualDomNode = { childCount: 2, className: 'AccountDetails', type: VirtualDomElements.Div }
 
@@ -30,6 +30,17 @@ export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[
     text(account.email),
     accountProvider,
     text(account.provider),
+    {
+      ariaLabel: account.active ? `Active account ${account.displayName}` : `Use account ${account.displayName}`,
+      childCount: 1,
+      className: buttonClassName,
+      disabled: account.active === true,
+      inputType: 'button',
+      name: `use-account:${account.id}`,
+      onClick: DomEventListenerFunctions.HandleClick,
+      type: VirtualDomElements.Button,
+    },
+    text(account.active ? 'Active Account' : 'Use This Account'),
     {
       ariaLabel: `Sign out ${account.displayName}`,
       childCount: 1,
