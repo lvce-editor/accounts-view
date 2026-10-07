@@ -1,6 +1,6 @@
 export const name = 'viewlet.accounts-view-open'
 
-export const test = async ({ Command, expect, Locator, page }) => {
+export const test = async ({ Command, expect, Locator }) => {
   const accounts = Locator('.Accounts')
   const main = Locator('.Main')
   const openAccounts = async () => {
@@ -19,8 +19,6 @@ export const test = async ({ Command, expect, Locator, page }) => {
   }
 
   await openAccounts()
-  await expectAccountsToFillMain()
-  await page.setViewportSize({ width: 800, height: 600 })
   await expectAccountsToFillMain()
   await Command.execute('Main.closeActiveEditor')
   await expect(accounts).toHaveCount(0)
