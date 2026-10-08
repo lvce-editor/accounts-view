@@ -104,9 +104,25 @@ test('flat virtual DOM has accessible switching controls and one active indicato
     }
     expect(remaining).toBe(0)
     expect(dom.some((node) => node.name === 'add-account' && node.onClick === 'handleClick')).toBe(true)
-    expect(dom.filter((node) => node.disabled)).toHaveLength(accounts.length > 0 ? 1 : 0)
+    expect(dom.filter((node) => node.disabled)).toHaveLength(accounts.length > 1 ? 1 : 0)
+    expect(dom.some((node) => node.text === 'Active Account')).toBe(accounts.length > 1)
+    expect(dom.some((node) => node.name === 'sign-out:test')).toBe(accounts.length > 0)
     expect(dom.some((node) => node.name === 'use-account:second')).toBe(accounts.length > 1)
   }
+})
+
+test('keeps the use-account action for a sole inactive account', async () => {
+  commandMap['Accounts.create'](9)
+  await commandMap['Accounts.loadContent'](9, [{ ...account, active: false }])
+  const dom = getAccountsVirtualDom(AccountsStates.get(9).newState)
+  let remaining = 1
+  for (const node of dom) {
+    expect(remaining).toBeGreaterThan(0)
+    remaining += (node.childCount || 0) - 1
+  }
+  expect(remaining).toBe(0)
+  expect(dom.some((node) => node.name === 'use-account:test')).toBe(true)
+  expect(dom.some((node) => node.text === 'Use This Account')).toBe(true)
 })
 
 test('renders integrations with disconnect controls instead of login switching', async () => {
