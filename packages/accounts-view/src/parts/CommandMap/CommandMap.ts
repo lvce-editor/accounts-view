@@ -1,6 +1,7 @@
 import * as AccountsStates from '../AccountsStates/AccountsStates.ts'
 import * as Create from '../Create/Create.ts'
 import * as Diff2 from '../Diff2/Diff2.ts'
+import * as Dispose from '../Dispose/Dispose.ts'
 import * as GetKeyBindings from '../GetKeyBindings/GetKeyBindings.ts'
 import * as HandleChange from '../HandleChange/HandleChange.ts'
 import * as HandleClick from '../HandleClick/HandleClick.ts'
@@ -12,7 +13,7 @@ import * as RenderEventListeners from '../RenderEventListeners/RenderEventListen
 export const commandMap = {
   'Accounts.create': Create.create,
   'Accounts.diff2': Diff2.diff2,
-  'Accounts.dispose': AccountsStates.dispose,
+  'Accounts.dispose': Dispose.dispose,
   'Accounts.getCommandIds': AccountsStates.getCommandIds,
   'Accounts.getKeyBindings': GetKeyBindings.getKeyBindings,
   'Accounts.handleChange': AccountsStates.wrapSerialCommand(HandleChange.handleChange),

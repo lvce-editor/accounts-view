@@ -14,15 +14,26 @@ const accountProvider: VirtualDomNode = { childCount: 1, className: 'AccountProv
 
 const buttonClassName = mergeClassNames('Button', 'ButtonSecondary')
 
+const getAvatarFallback = (avatarSrc: string | undefined, initials: string): readonly VirtualDomNode[] => {
+  if (avatarSrc) {
+    return []
+  }
+  return [text(initials)]
+}
+
 export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[] => {
   const initials = account.displayName
     .split(' ')
     .map((part) => part[0])
     .join('')
+  const avatarClassName = mergeClassNames('AccountAvatar', `AccountAvatar-${account.color}`)
+  const avatar = account.avatarSrc
+    ? { alt: '', ariaHidden: true, className: avatarClassName, src: account.avatarSrc, type: VirtualDomElements.Img }
+    : { ariaHidden: true, childCount: 1, className: avatarClassName, type: VirtualDomElements.Span }
   return [
     accountCard,
-    { ariaHidden: true, childCount: 1, className: mergeClassNames('AccountAvatar', `AccountAvatar-${account.color}`), type: VirtualDomElements.Span },
-    text(initials),
+    avatar,
+    ...getAvatarFallback(account.avatarSrc, initials),
     accountDetails,
     accountHeading,
     text(account.displayName),

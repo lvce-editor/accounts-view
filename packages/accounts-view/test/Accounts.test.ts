@@ -1,7 +1,10 @@
-import { beforeEach, expect, test } from '@jest/globals'
+import { beforeEach, expect, jest, test } from '@jest/globals'
+import { createMockRpc } from '@lvce-editor/rpc'
 import { RendererWorker } from '@lvce-editor/rpc-registry'
+import { VirtualDomElements } from '@lvce-editor/virtual-dom-worker'
 import type { Account } from '../src/parts/Account/Account.ts'
 import * as AccountsStates from '../src/parts/AccountsStates/AccountsStates.ts'
+import * as CacheWorker from '../src/parts/CacheWorker/CacheWorker.ts'
 import { commandMap } from '../src/parts/CommandMap/CommandMap.ts'
 import { getAccountsVirtualDom } from '../src/parts/GetAccountsVirtualDom/GetAccountsVirtualDom.ts'
 
@@ -104,4 +107,77 @@ test('flat virtual DOM has accessible switching controls and one active indicato
     expect(dom.filter((node) => node.disabled)).toHaveLength(accounts.length > 0 ? 1 : 0)
     expect(dom.some((node) => node.name === 'use-account:second')).toBe(accounts.length > 1)
   }
+})
+
+test('loads a GitHub avatar asynchronously and releases the image URL on dispose', async () => {
+  CacheWorker.set(
+    createMockRpc({
+      commandMap: {
+        'Cache.getCacheStorageItem': () => ({ body: Uint8Array.from([1, 2, 3]).buffer, headers: { 'content-type': 'image/png' } }),
+      },
+    }),
+  )
+  using rendererRpc = RendererWorker.registerMockRpc({ 'Viewlet.requestRender': () => undefined })
+  const createObjectUrl = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:avatar')
+  const revokeObjectUrl = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+  commandMap['Accounts.create'](3)
+  await commandMap['Accounts.loadContent'](3, [{ ...account, avatarUrl: 'https://avatars.githubusercontent.com/u/1' }])
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  expect(AccountsStates.get(3).newState.accounts[0].avatarSrc).toBe('blob:avatar')
+  expect(
+    getAccountsVirtualDom(AccountsStates.get(3).newState).some((node) => node.type === VirtualDomElements.Img && node.src === 'blob:avatar'),
+  ).toBe(true)
+  expect(rendererRpc.invocations).toEqual([['Viewlet.requestRender', 3]])
+  commandMap['Accounts.dispose'](3)
+  expect(revokeObjectUrl).toHaveBeenCalledWith('blob:avatar')
+  createObjectUrl.mockRestore()
+  revokeObjectUrl.mockRestore()
+})
+
+test('does not restore a signed-out account after its avatar request completes', async () => {
+  const cachedImage = Promise.withResolvers<{ body: ArrayBuffer; headers: { 'content-type': string } } | null>()
+  CacheWorker.set(createMockRpc({ commandMap: { 'Cache.getCacheStorageItem': () => cachedImage.promise } }))
+  const createObjectUrl = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:late-avatar')
+  commandMap['Accounts.create'](4)
+  await commandMap['Accounts.loadContent'](4, [{ ...account, avatarUrl: 'https://avatars.githubusercontent.com/u/2' }])
+  await commandMap['Accounts.loadContent'](4, [])
+  cachedImage.resolve({ body: Uint8Array.from([1]).buffer, headers: { 'content-type': 'image/png' } })
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  expect(AccountsStates.get(4).newState.accounts).toEqual([])
+  expect(createObjectUrl).not.toHaveBeenCalled()
+  createObjectUrl.mockRestore()
+})
+
+test('keeps initials when avatar download fails', async () => {
+  CacheWorker.set(createMockRpc({ commandMap: { 'Cache.getCacheStorageItem': () => null } }))
+  const fetchMock = jest.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network unavailable'))
+  commandMap['Accounts.create'](5)
+  await commandMap['Accounts.loadContent'](5, [{ ...account, avatarUrl: 'https://avatars.githubusercontent.com/u/5' }])
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  const dom = getAccountsVirtualDom(AccountsStates.get(5).newState)
+  expect(dom.some((node) => node.type === VirtualDomElements.Img)).toBe(false)
+  expect(dom.some((node) => node.text === 'TU')).toBe(true)
+  fetchMock.mockRestore()
+})
+
+test('releases an avatar URL when an account avatar is replaced', async () => {
+  CacheWorker.set(
+    createMockRpc({
+      commandMap: {
+        'Cache.getCacheStorageItem': () => ({ body: Uint8Array.from([1]).buffer, headers: { 'content-type': 'image/png' } }),
+      },
+    }),
+  )
+  const createObjectUrl = jest.spyOn(URL, 'createObjectURL').mockReturnValueOnce('blob:old-avatar').mockReturnValueOnce('blob:new-avatar')
+  const revokeObjectUrl = jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+  commandMap['Accounts.create'](6)
+  await commandMap['Accounts.loadContent'](6, [{ ...account, avatarUrl: 'https://avatars.githubusercontent.com/u/6?v=1' }])
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await commandMap['Accounts.loadContent'](6, [{ ...account, avatarUrl: 'https://avatars.githubusercontent.com/u/6?v=2' }])
+  expect(revokeObjectUrl).toHaveBeenCalledWith('blob:old-avatar')
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  commandMap['Accounts.dispose'](6)
+  expect(revokeObjectUrl).toHaveBeenCalledWith('blob:new-avatar')
+  createObjectUrl.mockRestore()
+  revokeObjectUrl.mockRestore()
 })
