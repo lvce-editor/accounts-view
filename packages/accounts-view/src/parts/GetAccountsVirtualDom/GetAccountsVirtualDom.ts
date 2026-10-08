@@ -5,13 +5,7 @@ import * as GetAccountVirtualDom from '../GetAccountVirtualDom/GetAccountVirtual
 
 const heading: VirtualDomNode = { childCount: 1, type: VirtualDomElements.H1 }
 
-const actions: VirtualDomNode = { childCount: 3, className: 'AccountsActions', type: VirtualDomElements.Div }
-
-const providerLabel: VirtualDomNode = { childCount: 1, htmlFor: 'AccountsProvider', type: VirtualDomElements.Label }
-
-const githubOption: VirtualDomNode = { childCount: 1, type: VirtualDomElements.Option, value: 'GitHub' }
-
-const microsoftOption: VirtualDomNode = { childCount: 1, type: VirtualDomElements.Option, value: 'Microsoft' }
+const actions: VirtualDomNode = { childCount: 1, className: 'AccountsActions', type: VirtualDomElements.Div }
 
 const addButton: VirtualDomNode = {
   childCount: 1,
@@ -33,28 +27,14 @@ const emptyDescription: VirtualDomNode = { childCount: 1, type: VirtualDomElemen
 const viewletClassName = mergeClassNames('Viewlet', 'Accounts')
 
 export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDomNode[] => {
-  const { accounts, provider } = state
+  const { accounts } = state
   const dom: VirtualDomNode[] = [
     { ariaLabel: 'Accounts', childCount: accounts.length === 0 ? 5 : 4, className: viewletClassName, type: VirtualDomElements.Div },
     heading,
     text('Accounts'),
     actions,
-    providerLabel,
-    text('Provider'),
-    {
-      childCount: 2,
-      id: 'AccountsProvider',
-      name: 'provider',
-      onChange: DomEventListenerFunctions.HandleChange,
-      type: VirtualDomElements.Select,
-      value: provider,
-    },
-    githubOption,
-    text('GitHub'),
-    microsoftOption,
-    text('Microsoft'),
     addButton,
-    text('Add account'),
+    text('Add Another Account'),
     status,
     text(`${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'} connected`),
     { ariaLabel: 'Connected accounts', childCount: accounts.length, className: 'AccountList', type: VirtualDomElements.Ul },

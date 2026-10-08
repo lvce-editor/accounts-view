@@ -1,26 +1,25 @@
+import { RendererWorker } from '@lvce-editor/rpc-registry'
 import type { AccountsState } from '../AccountsState/AccountsState.ts'
+import { loadContent } from '../LoadContent/LoadContent.ts'
 
-export const handleClick = (state: AccountsState, name: string): AccountsState => {
-  const { accounts, provider } = state
+export const handleClick = async (state: AccountsState, name: string): Promise<AccountsState> => {
+  const { accounts } = state
   if (name === 'add-account') {
-    return {
-      ...state,
-      accounts: [
-        ...accounts,
-        {
-          color: 'green',
-          displayName: 'New demo account',
-          email: 'new.account@example.com',
-          id: `mock-added-${crypto.randomUUID()}`,
-          provider,
-        },
-      ],
+    await RendererWorker.invoke('Layout.signIn')
+    return loadContent(state)
+  }
+  for (const [prefix, command] of [
+    ['use-account:', 'Layout.useAccount'],
+    ['sign-out:', 'Layout.removeAccount'],
+  ]) {
+    if (name.startsWith(prefix)) {
+      const id = name.slice(prefix.length)
+      if (accounts.every((account) => account.id !== id)) {
+        return state
+      }
+      await RendererWorker.invoke(command, id)
+      return loadContent(state)
     }
   }
-  if (!name.startsWith('sign-out:')) {
-    return state
-  }
-  const id = name.slice('sign-out:'.length)
-  const remainingAccounts = accounts.filter((account) => account.id !== id)
-  return remainingAccounts.length === accounts.length ? state : { ...state, accounts: remainingAccounts }
+  return state
 }
