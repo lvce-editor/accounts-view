@@ -3,8 +3,6 @@ import type { AccountsState } from '../AccountsState/AccountsState.ts'
 import * as DomEventListenerFunctions from '../DomEventListenerFunctions/DomEventListenerFunctions.ts'
 import * as GetAccountVirtualDom from '../GetAccountVirtualDom/GetAccountVirtualDom.ts'
 
-const heading: VirtualDomNode = { childCount: 1, type: VirtualDomElements.H1 }
-
 const actions: VirtualDomNode = { childCount: 1, className: 'AccountsActions', type: VirtualDomElements.Div }
 
 const addButton: VirtualDomNode = {
@@ -29,9 +27,7 @@ const viewletClassName = mergeClassNames('Viewlet', 'Accounts')
 export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDomNode[] => {
   const { accounts, errorMessage } = state
   const dom: VirtualDomNode[] = [
-    { ariaLabel: 'Accounts', childCount: accounts.length === 0 ? 5 : 4, className: viewletClassName, type: VirtualDomElements.Div },
-    heading,
-    text('Accounts'),
+    { ariaLabel: 'Accounts', childCount: accounts.length === 0 ? 4 : 3, className: viewletClassName, type: VirtualDomElements.Div },
     actions,
     addButton,
     text('Add Another Account'),

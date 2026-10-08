@@ -1,6 +1,8 @@
 export const test = async ({ document, assert, waitFor }) => {
   const accounts = () => document.querySelector('ul[aria-label="Connected accounts"]')
   const emptyState = () => document.querySelector('.AccountsEmptyState h2')
+  assert(!document.querySelector('.Accounts h1'), 'Unexpected Accounts heading')
+  assert(document.querySelector('.Accounts')?.getAttribute('aria-label') === 'Accounts', 'Accounts view accessible label missing')
   assert(emptyState()?.textContent === 'No accounts connected', 'Empty state heading missing')
   assert(document.querySelector('button[name="add-account"]').textContent === 'Add Another Account', 'Missing additional login control')
   document.querySelector('button[name="add-account"]').click()
