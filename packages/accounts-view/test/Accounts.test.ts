@@ -109,6 +109,52 @@ test('flat virtual DOM has accessible switching controls and one active indicato
   }
 })
 
+test('renders integrations with disconnect controls instead of login switching', async () => {
+  const integration: Account = {
+    color: 'purple',
+    connectionId: 'openrouter',
+    displayName: 'OpenRouter',
+    email: 'Connected integration',
+    id: 'connection:openrouter',
+    kind: 'integration',
+    provider: 'OpenRouter',
+  }
+  commandMap['Accounts.create'](7)
+  await commandMap['Accounts.loadContent'](7, [account, integration])
+  const dom = getAccountsVirtualDom(AccountsStates.get(7).newState)
+  expect(dom.find((node) => node.name === 'disconnect:connection:openrouter')).toMatchObject({
+    ariaLabel: 'Disconnect OpenRouter',
+  })
+  expect(dom.some((node) => node.name === 'use-account:connection:openrouter')).toBe(false)
+  expect(dom.some((node) => node.name === 'sign-out:connection:openrouter')).toBe(false)
+  expect(dom.some((node) => node.text === '2 accounts connected')).toBe(true)
+})
+
+test('failed integration disconnect keeps the account visible and reports the error', async () => {
+  const integration: Account = {
+    color: 'purple',
+    connectionId: 'openrouter',
+    displayName: 'OpenRouter',
+    email: 'Connected integration',
+    id: 'connection:openrouter',
+    kind: 'integration',
+    provider: 'OpenRouter',
+  }
+  using rpc = RendererWorker.registerMockRpc({
+    'Layout.disconnectConnectedAccount': () => {
+      throw new Error('Unable to disconnect OpenRouter (500).')
+    },
+  })
+  commandMap['Accounts.create'](8)
+  await commandMap['Accounts.loadContent'](8, [integration])
+  await commandMap['Accounts.handleClick'](8, 'disconnect:connection:openrouter')
+  const state = AccountsStates.get(8).newState
+  const { accounts, errorMessage } = state
+  expect(accounts).toEqual([integration])
+  expect(errorMessage).toBe('Unable to disconnect OpenRouter (500).')
+  expect(rpc.invocations).toEqual([['Layout.disconnectConnectedAccount', 'openrouter']])
+})
+
 test('loads a GitHub avatar asynchronously and releases the image URL on dispose', async () => {
   CacheWorker.set(
     createMockRpc({

@@ -7,12 +7,14 @@ const root = document.createElement('div')
 document.body.append(root)
 const pending = new Map<number, readonly (readonly unknown[])[]>()
 interface Account {
-  readonly active: boolean
+  readonly active?: boolean
   readonly avatarUrl?: string
   readonly color: string
+  readonly connectionId?: string
   readonly displayName: string
   readonly email: string
   readonly id: string
+  readonly kind?: 'integration' | 'login'
   readonly provider: string
 }
 
@@ -20,17 +22,40 @@ const state: { accounts: readonly Account[]; nextAccount: number; nextTransactio
   accounts:
     new URL(location.href).searchParams.has('populated') ||
     location.pathname.endsWith('/accounts-view-initial-render.html') ||
-    location.pathname.endsWith('/accounts-view-avatar.html')
+    location.pathname.endsWith('/accounts-view-avatar.html') ||
+    location.pathname.endsWith('/accounts-view-connected-account.html')
       ? [
-          {
-            active: true,
-            ...(location.pathname.endsWith('/accounts-view-avatar.html') && { avatarUrl: 'https://avatars.githubusercontent.com/u/12345' }),
-            color: 'blue',
-            displayName: 'Test User',
-            email: 'test@example.com',
-            id: 'test',
-            provider: location.pathname.endsWith('/accounts-view-avatar.html') ? 'GitHub' : 'LVCE Editor',
-          },
+          ...(location.pathname.endsWith('/accounts-view-connected-account.html')
+            ? [
+                {
+                  active: true,
+                  color: 'blue',
+                  displayName: 'Test User',
+                  email: 'test@example.com',
+                  id: 'test',
+                  provider: 'LVCE Editor',
+                },
+                {
+                  color: 'purple',
+                  connectionId: 'openrouter',
+                  displayName: 'OpenRouter',
+                  email: 'Connected integration',
+                  id: 'connection:openrouter',
+                  kind: 'integration' as const,
+                  provider: 'OpenRouter',
+                },
+              ]
+            : [
+                {
+                  active: true,
+                  ...(location.pathname.endsWith('/accounts-view-avatar.html') && { avatarUrl: 'https://avatars.githubusercontent.com/u/12345' }),
+                  color: 'blue',
+                  displayName: 'Test User',
+                  email: 'test@example.com',
+                  id: 'test',
+                  provider: location.pathname.endsWith('/accounts-view-avatar.html') ? 'GitHub' : 'LVCE Editor',
+                },
+              ]),
         ]
       : [],
   nextAccount: 0,
@@ -67,6 +92,10 @@ const channel = new MessageChannel()
 await ModuleWorkerWithMessagePortRpcParent.create({ commandMap: {}, port: channel.port2, url: '/accountsWorkerMain.js' })
 const workerRpc: Rpc = await PlainMessagePortRpc.create({
   commandMap: {
+    'Layout.disconnectConnectedAccount': (provider: string): void => {
+      const { accounts } = state
+      state.accounts = accounts.filter((account) => account.connectionId !== provider)
+    },
     'Layout.getAccounts': () => {
       const { accounts } = state
       return accounts
