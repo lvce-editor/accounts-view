@@ -8,6 +8,7 @@ document.body.append(root)
 const pending = new Map<number, readonly (readonly unknown[])[]>()
 interface Account {
   readonly active: boolean
+  readonly avatarUrl?: string
   readonly color: string
   readonly displayName: string
   readonly email: string
@@ -17,8 +18,20 @@ interface Account {
 
 const state: { accounts: readonly Account[]; nextAccount: number; nextTransaction: number } = {
   accounts:
-    new URL(location.href).searchParams.has('populated') || location.pathname.endsWith('/accounts-view-initial-render.html')
-      ? [{ active: true, color: 'blue', displayName: 'Test User', email: 'test@example.com', id: 'test', provider: 'LVCE Editor' }]
+    new URL(location.href).searchParams.has('populated') ||
+    location.pathname.endsWith('/accounts-view-initial-render.html') ||
+    location.pathname.endsWith('/accounts-view-avatar.html')
+      ? [
+          {
+            active: true,
+            ...(location.pathname.endsWith('/accounts-view-avatar.html') && { avatarUrl: 'https://avatars.githubusercontent.com/u/12345' }),
+            color: 'blue',
+            displayName: 'Test User',
+            email: 'test@example.com',
+            id: 'test',
+            provider: location.pathname.endsWith('/accounts-view-avatar.html') ? 'GitHub' : 'LVCE Editor',
+          },
+        ]
       : [],
   nextAccount: 0,
   nextTransaction: 0,
@@ -85,6 +98,21 @@ const workerRpc: Rpc = await PlainMessagePortRpc.create({
     'Layout.useAccount': (id: string): void => {
       const { accounts } = state
       state.accounts = accounts.map((account) => ({ ...account, active: account.id === id }))
+    },
+    'SendMessagePortToExtensionHostWorker.sendMessagePortToCacheWorker': async (port: MessagePort): Promise<void> => {
+      const body = Uint8Array.from([
+        137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 13, 73, 68,
+        65, 84, 8, 215, 99, 96, 96, 96, 248, 15, 0, 1, 4, 1, 0, 90, 90, 18, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130,
+      ]).buffer
+      await PlainMessagePortRpc.create({
+        commandMap: {
+          'Cache.getCacheStorageItem': (url: string) =>
+            url === 'https://avatars.githubusercontent.com/u/12345'
+              ? { body, headers: { 'content-type': 'image/png' }, status: 200, statusText: 'OK' }
+              : null,
+        },
+        messagePort: port,
+      })
     },
     'Viewlet.requestRender': render,
   },
