@@ -15,7 +15,7 @@ const waitFor = async (predicate, message) => {
 }
 
 try {
-  await waitFor(() => document.querySelector('.Accounts h1'), 'Accounts worker did not render')
+  await waitFor(() => document.querySelector('.Accounts button[name="add-account"]'), 'Accounts worker did not render')
   const { test } = await import(`./${testName}.js`)
   await test({ document, assert, waitFor })
   overlay.dataset.state = 'pass'

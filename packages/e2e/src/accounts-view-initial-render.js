@@ -1,5 +1,7 @@
 export const test = async ({ document, assert, waitFor }) => {
   const accounts = () => document.querySelector('ul[aria-label="Connected accounts"]')
+  assert(!document.querySelector('.Accounts h1'), 'Unexpected Accounts heading')
+  assert(document.querySelector('.Accounts')?.getAttribute('aria-label') === 'Accounts', 'Accounts view accessible label missing')
   assert(accounts().children.length === 1, 'Expected the supplied account to render')
   assert(accounts().textContent.includes('Test User'), 'Supplied account was missing')
   assert(accounts().textContent.includes('test@example.com'), 'Supplied account email was missing')

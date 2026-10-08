@@ -5,7 +5,8 @@ export const test = async ({ Command, expect, Locator }) => {
   const openAccounts = async () => {
     await Command.execute('Main.openUri', 'accounts:///1')
     await expect(accounts).toBeVisible()
-    await expect(accounts.locator('h1')).toHaveText('Accounts')
+    await expect(accounts.locator('h1')).toHaveCount(0)
+    await expect(accounts).toHaveAttribute('aria-label', 'Accounts')
     await expect(accounts.locator('[role="status"]')).toHaveText('0 accounts connected')
     await expect(accounts.locator('.AccountsEmptyState h2')).toHaveText('No accounts connected')
   }
