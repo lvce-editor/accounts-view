@@ -6,6 +6,8 @@ export interface Account {
   readonly displayName: string
   readonly email: string
   readonly id: string
+  readonly kind?: 'integration' | 'login'
+  readonly connectionId?: string
   readonly provider: string
   readonly signedIn?: boolean
 }

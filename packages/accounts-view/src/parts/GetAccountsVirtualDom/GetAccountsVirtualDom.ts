@@ -36,7 +36,7 @@ export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDom
     addButton,
     text('Add Another Account'),
     status,
-    text(`${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'} connected`),
+    text(state.errorMessage || `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'} connected`),
     { ariaLabel: 'Connected accounts', childCount: accounts.length, className: 'AccountList', type: VirtualDomElements.Ul },
     ...accounts.flatMap(GetAccountVirtualDom.getAccountVirtualDom),
   ]

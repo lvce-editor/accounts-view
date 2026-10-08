@@ -22,6 +22,7 @@ const getAvatarFallback = (avatarSrc: string | undefined, initials: string): rea
 }
 
 export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[] => {
+  const isIntegration = account.kind === 'integration'
   const initials = account.displayName
     .split(' ')
     .map((part) => part[0])
@@ -41,26 +42,30 @@ export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[
     text(account.email),
     accountProvider,
     text(account.provider),
+    ...(!isIntegration
+      ? ([
+          {
+            ariaLabel: account.active ? `Active account ${account.displayName}` : `Use account ${account.displayName}`,
+            childCount: 1,
+            className: buttonClassName,
+            disabled: account.active === true,
+            inputType: 'button',
+            name: `use-account:${account.id}`,
+            onClick: DomEventListenerFunctions.HandleClick,
+            type: VirtualDomElements.Button,
+          },
+          text(account.active ? 'Active Account' : 'Use This Account'),
+        ] as const)
+      : []),
     {
-      ariaLabel: account.active ? `Active account ${account.displayName}` : `Use account ${account.displayName}`,
+      ariaLabel: isIntegration ? `Disconnect ${account.displayName}` : `Sign out ${account.displayName}`,
       childCount: 1,
       className: buttonClassName,
-      disabled: account.active === true,
       inputType: 'button',
-      name: `use-account:${account.id}`,
+      name: `${isIntegration ? 'disconnect' : 'sign-out'}:${account.id}`,
       onClick: DomEventListenerFunctions.HandleClick,
       type: VirtualDomElements.Button,
     },
-    text(account.active ? 'Active Account' : 'Use This Account'),
-    {
-      ariaLabel: `Sign out ${account.displayName}`,
-      childCount: 1,
-      className: buttonClassName,
-      inputType: 'button',
-      name: `sign-out:${account.id}`,
-      onClick: DomEventListenerFunctions.HandleClick,
-      type: VirtualDomElements.Button,
-    },
-    text('Sign out'),
+    text(isIntegration ? `Disconnect ${account.displayName}` : 'Sign out'),
   ]
 }
