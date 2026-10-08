@@ -27,7 +27,7 @@ const emptyDescription: VirtualDomNode = { childCount: 1, type: VirtualDomElemen
 const viewletClassName = mergeClassNames('Viewlet', 'Accounts')
 
 export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDomNode[] => {
-  const { accounts } = state
+  const { accounts, errorMessage } = state
   const dom: VirtualDomNode[] = [
     { ariaLabel: 'Accounts', childCount: accounts.length === 0 ? 5 : 4, className: viewletClassName, type: VirtualDomElements.Div },
     heading,
@@ -36,7 +36,7 @@ export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDom
     addButton,
     text('Add Another Account'),
     status,
-    text(state.errorMessage || `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'} connected`),
+    text(errorMessage || `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'} connected`),
     { ariaLabel: 'Connected accounts', childCount: accounts.length, className: 'AccountList', type: VirtualDomElements.Ul },
     ...accounts.flatMap(GetAccountVirtualDom.getAccountVirtualDom),
   ]

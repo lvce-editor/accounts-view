@@ -149,8 +149,9 @@ test('failed integration disconnect keeps the account visible and reports the er
   await commandMap['Accounts.loadContent'](8, [integration])
   await commandMap['Accounts.handleClick'](8, 'disconnect:connection:openrouter')
   const state = AccountsStates.get(8).newState
-  expect(state.accounts).toEqual([integration])
-  expect(state.errorMessage).toBe('Unable to disconnect OpenRouter (500).')
+  const { accounts, errorMessage } = state
+  expect(accounts).toEqual([integration])
+  expect(errorMessage).toBe('Unable to disconnect OpenRouter (500).')
   expect(rpc.invocations).toEqual([['Layout.disconnectConnectedAccount', 'openrouter']])
 })
 

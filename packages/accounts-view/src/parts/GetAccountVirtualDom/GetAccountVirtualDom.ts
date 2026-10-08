@@ -21,6 +21,25 @@ const getAvatarFallback = (avatarSrc: string | undefined, initials: string): rea
   return [text(initials)]
 }
 
+const getUseAccountVirtualDom = (account: Account): readonly VirtualDomNode[] => {
+  if (account.kind === 'integration') {
+    return []
+  }
+  return [
+    {
+      ariaLabel: account.active ? `Active account ${account.displayName}` : `Use account ${account.displayName}`,
+      childCount: 1,
+      className: buttonClassName,
+      disabled: account.active === true,
+      inputType: 'button',
+      name: `use-account:${account.id}`,
+      onClick: DomEventListenerFunctions.HandleClick,
+      type: VirtualDomElements.Button,
+    },
+    text(account.active ? 'Active Account' : 'Use This Account'),
+  ]
+}
+
 export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[] => {
   const isIntegration = account.kind === 'integration'
   const initials = account.displayName
@@ -42,21 +61,7 @@ export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[
     text(account.email),
     accountProvider,
     text(account.provider),
-    ...(!isIntegration
-      ? ([
-          {
-            ariaLabel: account.active ? `Active account ${account.displayName}` : `Use account ${account.displayName}`,
-            childCount: 1,
-            className: buttonClassName,
-            disabled: account.active === true,
-            inputType: 'button',
-            name: `use-account:${account.id}`,
-            onClick: DomEventListenerFunctions.HandleClick,
-            type: VirtualDomElements.Button,
-          },
-          text(account.active ? 'Active Account' : 'Use This Account'),
-        ] as const)
-      : []),
+    ...getUseAccountVirtualDom(account),
     {
       ariaLabel: isIntegration ? `Disconnect ${account.displayName}` : `Sign out ${account.displayName}`,
       childCount: 1,

@@ -10,11 +10,11 @@ interface Account {
   readonly active?: boolean
   readonly avatarUrl?: string
   readonly color: string
+  readonly connectionId?: string
   readonly displayName: string
   readonly email: string
   readonly id: string
   readonly kind?: 'integration' | 'login'
-  readonly connectionId?: string
   readonly provider: string
 }
 
@@ -92,6 +92,10 @@ const channel = new MessageChannel()
 await ModuleWorkerWithMessagePortRpcParent.create({ commandMap: {}, port: channel.port2, url: '/accountsWorkerMain.js' })
 const workerRpc: Rpc = await PlainMessagePortRpc.create({
   commandMap: {
+    'Layout.disconnectConnectedAccount': (provider: string): void => {
+      const { accounts } = state
+      state.accounts = accounts.filter((account) => account.connectionId !== provider)
+    },
     'Layout.getAccounts': () => {
       const { accounts } = state
       return accounts
@@ -104,10 +108,6 @@ const workerRpc: Rpc = await PlainMessagePortRpc.create({
       if (removed?.active && remaining.length > 0) {
         state.accounts = remaining.map((account, index) => ({ ...account, active: index === 0 }))
       }
-    },
-    'Layout.disconnectConnectedAccount': (provider: string): void => {
-      const { accounts } = state
-      state.accounts = accounts.filter((account) => account.connectionId !== provider)
     },
     'Layout.signIn': (): void => {
       const { accounts } = state
