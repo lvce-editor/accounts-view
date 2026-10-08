@@ -21,8 +21,8 @@ const getAvatarFallback = (avatarSrc: string | undefined, initials: string): rea
   return [text(initials)]
 }
 
-const getUseAccountVirtualDom = (account: Account): readonly VirtualDomNode[] => {
-  if (account.kind === 'integration') {
+const getUseAccountVirtualDom = (account: Account, accountCount: number): readonly VirtualDomNode[] => {
+  if (account.kind === 'integration' || (accountCount === 1 && account.active === true)) {
     return []
   }
   return [
@@ -40,7 +40,7 @@ const getUseAccountVirtualDom = (account: Account): readonly VirtualDomNode[] =>
   ]
 }
 
-export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[] => {
+export const getAccountVirtualDom = (account: Account, accountCount: number): readonly VirtualDomNode[] => {
   const isIntegration = account.kind === 'integration'
   const initials = account.displayName
     .split(' ')
@@ -50,8 +50,9 @@ export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[
   const avatar = account.avatarSrc
     ? { alt: '', ariaHidden: true, className: avatarClassName, src: account.avatarSrc, type: VirtualDomElements.Img }
     : { ariaHidden: true, childCount: 1, className: avatarClassName, type: VirtualDomElements.Span }
+  const useAccountVirtualDom = getUseAccountVirtualDom(account, accountCount)
   return [
-    accountCard,
+    { ...accountCard, childCount: 3 + (account.avatarSrc ? 0 : 1) + (useAccountVirtualDom.length > 0 ? 1 : 0) },
     avatar,
     ...getAvatarFallback(account.avatarSrc, initials),
     accountDetails,
@@ -61,7 +62,7 @@ export const getAccountVirtualDom = (account: Account): readonly VirtualDomNode[
     text(account.email),
     accountProvider,
     text(account.provider),
-    ...getUseAccountVirtualDom(account),
+    ...useAccountVirtualDom,
     {
       ariaLabel: isIntegration ? `Disconnect ${account.displayName}` : `Sign out ${account.displayName}`,
       childCount: 1,
