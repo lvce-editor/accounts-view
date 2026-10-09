@@ -26,6 +26,18 @@ const viewletClassName = mergeClassNames('Viewlet', 'Accounts')
 
 export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDomNode[] => {
   const { accounts, errorMessage } = state
+  const loginIds = new Set(accounts.filter((account) => account.kind !== 'integration').map((account) => account.id))
+  const childrenByAccountId = new Map<string, typeof accounts[number][]>()
+  for (const account of accounts) {
+    if (account.kind === 'integration' && account.parentAccountId && loginIds.has(account.parentAccountId)) {
+      const children = childrenByAccountId.get(account.parentAccountId) || []
+      children.push(account)
+      childrenByAccountId.set(account.parentAccountId, children)
+    }
+  }
+  const topLevelAccounts = accounts.filter(
+    (account) => account.kind !== 'integration' || !account.parentAccountId || !loginIds.has(account.parentAccountId),
+  )
   const dom: VirtualDomNode[] = [
     { ariaLabel: 'Accounts', childCount: accounts.length === 0 ? 4 : 3, className: viewletClassName, type: VirtualDomElements.Div },
     actions,
@@ -33,8 +45,10 @@ export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDom
     text('Add Another Account'),
     status,
     text(errorMessage || `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'} connected`),
-    { ariaLabel: 'Connected accounts', childCount: accounts.length, className: 'AccountList', type: VirtualDomElements.Ul },
-    ...accounts.flatMap((account) => GetAccountVirtualDom.getAccountVirtualDom(account, accounts.length)),
+    { ariaLabel: 'Connected accounts', childCount: topLevelAccounts.length, className: 'AccountList', type: VirtualDomElements.Ul },
+    ...topLevelAccounts.flatMap((account) =>
+      GetAccountVirtualDom.getAccountVirtualDom(account, accounts.length, childrenByAccountId.get(account.id)),
+    ),
   ]
   if (accounts.length === 0) {
     dom.push(

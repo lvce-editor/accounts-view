@@ -40,7 +40,7 @@ const getUseAccountVirtualDom = (account: Account, accountCount: number): readon
   ]
 }
 
-export const getAccountVirtualDom = (account: Account, accountCount: number): readonly VirtualDomNode[] => {
+export const getAccountVirtualDom = (account: Account, accountCount: number, children: readonly Account[] = []): readonly VirtualDomNode[] => {
   const isIntegration = account.kind === 'integration'
   const initials = account.displayName
     .split(' ')
@@ -51,8 +51,15 @@ export const getAccountVirtualDom = (account: Account, accountCount: number): re
     ? { alt: '', ariaHidden: true, className: avatarClassName, src: account.avatarSrc, type: VirtualDomElements.Img }
     : { ariaHidden: true, childCount: 1, className: avatarClassName, type: VirtualDomElements.Span }
   const useAccountVirtualDom = getUseAccountVirtualDom(account, accountCount)
+  const childList: VirtualDomNode[] =
+    children.length > 0
+      ? [
+          { childCount: children.length, className: 'AccountChildren', type: VirtualDomElements.Ul },
+          ...children.flatMap((child) => getAccountVirtualDom(child, accountCount)),
+        ]
+      : []
   return [
-    { ...accountCard, childCount: 3 + (account.avatarSrc ? 0 : 1) + (useAccountVirtualDom.length > 0 ? 1 : 0) },
+    { ...accountCard, childCount: 3 + (account.avatarSrc ? 0 : 1) + (useAccountVirtualDom.length > 0 ? 1 : 0) + (children.length > 0 ? 1 : 0) },
     avatar,
     ...getAvatarFallback(account.avatarSrc, initials),
     accountDetails,
@@ -73,5 +80,6 @@ export const getAccountVirtualDom = (account: Account, accountCount: number): re
       type: VirtualDomElements.Button,
     },
     text(isIntegration ? `Disconnect ${account.displayName}` : 'Sign out'),
+    ...childList,
   ]
 }

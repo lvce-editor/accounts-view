@@ -14,6 +14,7 @@ interface Account {
   readonly displayName: string
   readonly email: string
   readonly id: string
+  readonly parentAccountId?: string
   readonly kind?: 'integration' | 'login'
   readonly provider: string
 }
@@ -23,9 +24,9 @@ const state: { accounts: readonly Account[]; nextAccount: number; nextTransactio
     new URL(location.href).searchParams.has('populated') ||
     location.pathname.endsWith('/accounts-view-initial-render.html') ||
     location.pathname.endsWith('/accounts-view-avatar.html') ||
-    location.pathname.endsWith('/accounts-view-connected-account.html')
+    location.pathname.includes('/accounts-view-connected-account')
       ? [
-          ...(location.pathname.endsWith('/accounts-view-connected-account.html')
+          ...(location.pathname.includes('/accounts-view-connected-account')
             ? [
                 {
                   active: true,
@@ -36,12 +37,21 @@ const state: { accounts: readonly Account[]; nextAccount: number; nextTransactio
                   provider: 'LVCE Editor',
                 },
                 {
+                  active: false,
+                  color: 'blue',
+                  displayName: 'Other User',
+                  email: 'other@example.com',
+                  id: 'other',
+                  provider: 'LVCE Editor',
+                },
+                {
                   color: 'purple',
                   connectionId: 'openrouter',
                   displayName: 'OpenRouter',
                   email: 'Connected integration',
                   id: 'connection:openrouter',
                   kind: 'integration' as const,
+                  parentAccountId: 'test',
                   provider: 'OpenRouter',
                 },
               ]
@@ -103,7 +113,7 @@ const workerRpc: Rpc = await PlainMessagePortRpc.create({
     'Layout.removeAccount': (id: string): void => {
       const { accounts } = state
       const removed = accounts.find((account) => account.id === id)
-      state.accounts = accounts.filter((account) => account.id !== id)
+      state.accounts = accounts.filter((account) => account.id !== id && account.parentAccountId !== id)
       const { accounts: remaining } = state
       if (removed?.active && remaining.length > 0) {
         state.accounts = remaining.map((account, index) => ({ ...account, active: index === 0 }))

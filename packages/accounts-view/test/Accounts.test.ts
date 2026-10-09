@@ -146,6 +146,76 @@ test('renders integrations with disconnect controls instead of login switching',
   expect(dom.some((node) => node.text === '2 accounts connected')).toBe(true)
 })
 
+test('nests each integration under its owning login and keeps virtual DOM child counts balanced', async () => {
+  const accounts: Account[] = [
+    account,
+    { ...account, active: false, id: 'other' },
+    {
+      color: 'purple',
+      connectionId: 'openrouter',
+      displayName: 'OpenRouter',
+      email: 'Connected integration',
+      id: 'connection:openrouter',
+      kind: 'integration',
+      parentAccountId: 'test',
+      provider: 'OpenRouter',
+    },
+    {
+      color: 'purple',
+      connectionId: 'github',
+      displayName: 'GitHub',
+      email: 'Connected integration',
+      id: 'connection:github',
+      kind: 'integration',
+      parentAccountId: 'other',
+      provider: 'GitHub',
+    },
+  ]
+  commandMap['Accounts.create'](11)
+  await commandMap['Accounts.loadContent'](11, accounts)
+  const dom = getAccountsVirtualDom(AccountsStates.get(11).newState)
+  const childLists = dom.filter((node) => node.className === 'AccountChildren')
+  expect(childLists).toHaveLength(2)
+  expect(dom.find((node) => node.className === 'AccountList')?.childCount).toBe(2)
+  expect(dom.filter((node) => node.name?.startsWith('disconnect:'))).toHaveLength(2)
+  let remaining = 1
+  for (const node of dom) {
+    expect(remaining).toBeGreaterThan(0)
+    remaining += (node.childCount || 0) - 1
+  }
+  expect(remaining).toBe(0)
+})
+
+test('removing a login and reloading removes its integrations from the account tree', async () => {
+  const other = { ...account, active: false, id: 'other' }
+  const integration: Account = {
+    color: 'purple',
+    connectionId: 'openrouter',
+    displayName: 'OpenRouter',
+    email: 'Connected integration',
+    id: 'connection:openrouter',
+    kind: 'integration',
+    parentAccountId: account.id,
+    provider: 'OpenRouter',
+  }
+  const state: { accounts: readonly Account[] } = { accounts: [account, other, integration] }
+  using rpc = RendererWorker.registerMockRpc({
+    'Layout.getAccounts': () => state.accounts,
+    'Layout.removeAccount': (id: string) => {
+      state.accounts = state.accounts.filter((item) => item.id !== id && item.parentAccountId !== id)
+    },
+  })
+  commandMap['Accounts.create'](12)
+  await commandMap['Accounts.loadContent'](12)
+  await commandMap['Accounts.handleClick'](12, 'sign-out:test')
+  const dom = getAccountsVirtualDom(AccountsStates.get(12).newState)
+  expect(AccountsStates.get(12).newState.accounts).toEqual([other])
+  expect(dom.some((node) => node.text === 'OpenRouter')).toBe(false)
+  expect(dom.some((node) => node.className === 'AccountChildren')).toBe(false)
+  expect(rpc.invocations).toContainEqual(['Layout.getAccounts'])
+  expect(rpc.invocations).toContainEqual(['Layout.removeAccount', 'test'])
+})
+
 test('failed integration disconnect keeps the account visible and reports the error', async () => {
   const integration: Account = {
     color: 'purple',
