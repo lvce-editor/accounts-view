@@ -14,8 +14,8 @@ interface Account {
   readonly displayName: string
   readonly email: string
   readonly id: string
-  readonly parentAccountId?: string
   readonly kind?: 'integration' | 'login'
+  readonly parentAccountId?: string
   readonly provider: string
 }
 

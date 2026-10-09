@@ -200,9 +200,13 @@ test('removing a login and reloading removes its integrations from the account t
   }
   const state: { accounts: readonly Account[] } = { accounts: [account, other, integration] }
   using rpc = RendererWorker.registerMockRpc({
-    'Layout.getAccounts': () => state.accounts,
+    'Layout.getAccounts': () => {
+      const { accounts } = state
+      return accounts
+    },
     'Layout.removeAccount': (id: string) => {
-      state.accounts = state.accounts.filter((item) => item.id !== id && item.parentAccountId !== id)
+      const { accounts } = state
+      state.accounts = accounts.filter((item) => item.id !== id && item.parentAccountId !== id)
     },
   })
   commandMap['Accounts.create'](12)

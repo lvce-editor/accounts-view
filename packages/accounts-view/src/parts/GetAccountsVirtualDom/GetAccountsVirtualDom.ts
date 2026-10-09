@@ -27,13 +27,14 @@ const viewletClassName = mergeClassNames('Viewlet', 'Accounts')
 export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDomNode[] => {
   const { accounts, errorMessage } = state
   const loginIds = new Set(accounts.filter((account) => account.kind !== 'integration').map((account) => account.id))
-  const childrenByAccountId = new Map<string, typeof accounts[number][]>()
+  const childrenByAccountId = new Map<string, (typeof accounts)[number][]>()
   for (const account of accounts) {
-    if (account.kind === 'integration' && account.parentAccountId && loginIds.has(account.parentAccountId)) {
-      const children = childrenByAccountId.get(account.parentAccountId) || []
-      children.push(account)
-      childrenByAccountId.set(account.parentAccountId, children)
+    if (account.kind !== 'integration' || !account.parentAccountId || !loginIds.has(account.parentAccountId)) {
+      continue
     }
+    const children = childrenByAccountId.get(account.parentAccountId) || []
+    children.push(account)
+    childrenByAccountId.set(account.parentAccountId, children)
   }
   const topLevelAccounts = accounts.filter(
     (account) => account.kind !== 'integration' || !account.parentAccountId || !loginIds.has(account.parentAccountId),
