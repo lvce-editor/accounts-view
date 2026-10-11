@@ -33,7 +33,9 @@ test('production output and package omit source maps while development output re
   const staticWorker = await readFile(staticWorkerPath, 'utf8')
   assert.equal(sourceMapReference.test(staticWorker), false)
 
-  const packedFiles = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: dist, encoding: 'utf8' }))[0].files
+  const packedFiles = JSON.parse(
+    execFileSync(process.execPath, [process.env.npm_execpath, 'pack', '--dry-run', '--json'], { cwd: dist, encoding: 'utf8' }),
+  )[0].files
   assert.equal(
     packedFiles.some(({ path }) => path.endsWith('.map')),
     false,
