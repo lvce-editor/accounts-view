@@ -10,7 +10,7 @@ const options = {
   format: 'esm' as const,
   platform: 'browser' as const,
   outfile: join(dist, 'dist/accountsWorkerMain.js'),
-  sourcemap: true,
+  sourcemap: process.argv.includes('--development') || process.argv.includes('--watch'),
   external: ['node:worker_threads', 'node:buffer', 'electron', 'ws'],
 }
 
