@@ -30,7 +30,7 @@ jobs:
           path: .tmp/lvce-integration
       - uses: actions/setup-node@v6
         with:
-          node-version-file: .tmp/lvce-integration/.nvmrc
+          node-version: 26.12.0
       - name: Install application dependencies
         working-directory: .tmp/lvce-integration
         run: npm ci
@@ -41,7 +41,7 @@ jobs:
         run: node packages/e2e-integration/stage-accounts-view-test.mjs .tmp/lvce-integration
       - name: Test Accounts view application rendering
         working-directory: .tmp/lvce-integration/packages/extension-host-worker-tests
-        run: npm run e2e:headless -- --ci --test-name-prefix=viewlet.accounts-view-open
+        run: npm run e2e:headless -- --ci --test-name-prefix=viewlet.accounts-view-open --browser-test=../../../../packages/e2e-integration/scripts/test-accounts-view-layout.mjs
       - name: Remove staged Accounts view regression
         if: always()
         run: node packages/e2e-integration/stage-accounts-view-test.mjs .tmp/lvce-integration --clean
