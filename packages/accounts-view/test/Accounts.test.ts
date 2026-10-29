@@ -26,6 +26,48 @@ test('loads the auth registry through the renderer and renders once', async () =
   expect(commandMap['Accounts.diff2'](1)).toEqual([])
 })
 
+test('keeps the accounts view usable when loading accounts fails and clears the error after recovery', async () => {
+  let failToLoadAccounts = true
+  using rpc = RendererWorker.registerMockRpc({
+    'Layout.getAccounts': () => {
+      if (failToLoadAccounts) {
+        throw new Error('Failed to fetch')
+      }
+      return [account]
+    },
+  })
+  commandMap['Accounts.create'](1)
+  await commandMap['Accounts.loadContent'](1)
+
+  const failedState = AccountsStates.get(1).newState
+  expect(failedState.accounts).toEqual([])
+  expect(failedState.errorMessage).toBe('Unable to load accounts: Failed to fetch')
+  const failedDom = getAccountsVirtualDom(failedState)
+  expect(failedDom.some((node) => node.text === 'Unable to load accounts: Failed to fetch')).toBe(true)
+  expect(failedDom.some((node) => node.text === 'No accounts connected')).toBe(false)
+  expect(failedDom.some((node) => node.name === 'add-account')).toBe(true)
+
+  failToLoadAccounts = false
+  await commandMap['Accounts.loadContent'](1)
+  expect(rpc.invocations).toEqual([['Layout.getAccounts'], ['Layout.getAccounts']])
+  expect(AccountsStates.get(1).newState.accounts).toEqual([account])
+  expect(AccountsStates.get(1).newState.errorMessage).toBe('')
+})
+
+test('preserves previously loaded accounts when reloading fails', async () => {
+  using rpc = RendererWorker.registerMockRpc({
+    'Layout.getAccounts': () => {
+      throw new Error('Failed to fetch')
+    },
+  })
+  commandMap['Accounts.create'](1)
+  await commandMap['Accounts.loadContent'](1, [account])
+  await commandMap['Accounts.loadContent'](1)
+  expect(rpc.invocations).toEqual([['Layout.getAccounts']])
+  expect(AccountsStates.get(1).newState.accounts).toEqual([account])
+  expect(AccountsStates.get(1).newState.errorMessage).toBe('Unable to load accounts: Failed to fetch')
+})
+
 test('add, switch, and sign out invoke real account commands and reload safe account metadata', async () => {
   const state: { accounts: readonly Account[] } = { accounts: [account] }
   using rpc = RendererWorker.registerMockRpc({
