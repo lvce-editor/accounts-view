@@ -24,7 +24,8 @@ const state: { accounts: readonly Account[]; nextAccount: number; nextTransactio
     new URL(location.href).searchParams.has('populated') ||
     location.pathname.endsWith('/accounts-view-initial-render.html') ||
     location.pathname.endsWith('/accounts-view-avatar.html') ||
-    location.pathname.includes('/accounts-view-connected-account')
+    location.pathname.includes('/accounts-view-connected-account') ||
+    location.pathname.endsWith('/accounts-view-load-error.html')
       ? [
           ...(location.pathname.includes('/accounts-view-connected-account')
             ? [
@@ -71,6 +72,7 @@ const state: { accounts: readonly Account[]; nextAccount: number; nextTransactio
   nextAccount: 0,
   nextTransaction: 0,
 }
+const accountsLoadFailures = { remaining: location.pathname.endsWith('/accounts-view-load-error.html') ? 1 : 0 }
 
 const eventMap = {
   handleChange: (event: Readonly<Event>): void => {
@@ -107,6 +109,10 @@ const workerRpc: Rpc = await PlainMessagePortRpc.create({
       state.accounts = accounts.filter((account) => account.connectionId !== provider)
     },
     'Layout.getAccounts': () => {
+      if (accountsLoadFailures.remaining > 0) {
+        accountsLoadFailures.remaining--
+        throw new Error('Failed to fetch')
+      }
       const { accounts } = state
       return accounts
     },

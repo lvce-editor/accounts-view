@@ -6,7 +6,13 @@ import * as LoadAvatar from '../LoadAvatar/LoadAvatar.ts'
 export const loadContent = async (state: AccountsState, accounts?: readonly Account[]): Promise<AccountsState> => {
   const { uid } = state
   const { accounts: previousAccounts } = state
-  const connected = accounts ?? ((await RendererWorker.invoke('Layout.getAccounts')) as readonly Account[])
+  let connected: readonly Account[]
+  try {
+    connected = accounts ?? ((await RendererWorker.invoke('Layout.getAccounts')) as readonly Account[])
+  } catch (error) {
+    const errorMessage = error instanceof Error ? `Unable to load accounts: ${error.message}` : 'Unable to load accounts.'
+    return { ...state, errorMessage, initialized: true }
+  }
   const currentAccounts = new Map(previousAccounts.map((account) => [account.id, account]))
   const nextAccounts = connected.map((account) => {
     const previous = currentAccounts.get(account.id)
@@ -23,7 +29,7 @@ export const loadContent = async (state: AccountsState, accounts?: readonly Acco
       URL.revokeObjectURL(account.avatarSrc)
     }
   }
-  const nextState = { ...state, accounts: nextAccounts, initialized: true }
+  const nextState = { ...state, accounts: nextAccounts, errorMessage: '', initialized: true }
   for (const account of nextAccounts) {
     void LoadAvatar.loadAvatar(uid, account)
   }

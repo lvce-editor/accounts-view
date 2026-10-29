@@ -51,7 +51,7 @@ export const getAccountsVirtualDom = (state: AccountsState): readonly VirtualDom
       GetAccountVirtualDom.getAccountVirtualDom(account, accounts.length, childrenByAccountId.get(account.id)),
     ),
   ]
-  if (accounts.length === 0) {
+  if (accounts.length === 0 && !errorMessage) {
     dom.push(
       emptyState,
       emptyHeading,
